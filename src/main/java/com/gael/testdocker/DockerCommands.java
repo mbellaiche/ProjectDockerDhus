@@ -401,12 +401,11 @@ public class DockerCommands {
 	
 	public void addFileToContainer(String pathFile, String containerId, String pathFromContainer) throws DockerCertificateException, DockerException, InterruptedException, IOException
 	{
+		
 		InputStream targetStream = new FileInputStream(new File(pathFile));
         
-    	DockerClient docker = DefaultDockerClient.fromEnv().build();
-    	docker.copyToContainer(targetStream, containerId, pathFromContainer);
+    	this.docker.copyToContainer(targetStream, containerId, pathFromContainer);
     
-    	docker.close();
 	}
 	
 	/* CREATE IMAGES AND CONTAINERS */

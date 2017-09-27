@@ -62,7 +62,7 @@ public class Programme {
     	String[] ports = null;
     	
     	String pathDockerFile = prop.getProperty("pathdockerfile", "./containerRepo");
-    	String nameImage = prop.getProperty("nameImage", "centostestimage");
+    	String nameImage = prop.getProperty("nameImage", "centosimageref");
     	String nameContainer = prop.getProperty("nameContainer", "centoscontainer");
     	
     	String portProperties = prop.getProperty("ports", "8081");
@@ -77,12 +77,20 @@ public class Programme {
     		ports[0] = portProperties;
     	}
     	
+    	Utils.createTar("lib.tar", "lib/");
+    	
     	DockerCommands dc = new DockerCommands();
     	
     	String containerId = dc.createContainer(ports, nameContainer, nameImage);
     	dc.startContainer(containerId);
+    
+    	dc.addFileToContainer("lib.tar", containerId, "/home/dhus/server/lib");
+    	
+    	String[] command = {"bash", "-c", "/root/script.sh"};
+    	dc.commandInContainer(containerId, command);
     	
     	dc.close();
+    	    	
     }
     
     public static void launchCommandes() throws FileNotFoundException, IOException, DockerCertificateException, DockerException, InterruptedException
