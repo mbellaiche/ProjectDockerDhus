@@ -28,6 +28,21 @@ import com.spotify.docker.client.messages.ExecCreation;
 
 public class Programme {
 
+	private static Properties prop;
+	private static String[] ports;
+	private static String pathDockerFile;
+	private static String nameImage;
+	private static String nameContainer;
+	private static String portProperties;
+	
+	private static String nameTar = "lib.tar";
+	
+	private static String configName = "config.properties";
+	private static String pathDockerFileProperty = "pathdockerfile";
+	private static String nameImageProperty = "nameImage";
+	private static String nameContainerProperty = "nameContainer";
+	private static String portsProperty = "ports";
+	
 	/**
      * Charge la liste des propriétés contenu dans le fichier spécifié
      *
@@ -46,64 +61,34 @@ public class Programme {
 		}
 	}
 	
-    public static void main(String[] args) throws DockerCertificateException, IOException, DockerException, InterruptedException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, DockerCertificateException, DockerException, InterruptedException {
 	
-    	String buildargs = "{\"PATHWORKDIR\":\"/home\"}";
+    	//String buildargs = "{\"PATHWORKDIR\":\"/home\"}";
     	
-//    	try {
-//			launchCommandes();
-//		} catch (IOException | DockerCertificateException | DockerException | InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-    
-    	Properties prop = Programme.load("config.properties");
+    	init();
     	
-    	String[] ports = null;
-    	
-    	String pathDockerFile = prop.getProperty("pathdockerfile", "./containerRepo");
-    	String nameImage = prop.getProperty("nameImage", "centosimageref");
-    	String nameContainer = prop.getProperty("nameContainer", "centoscontainer");
-    	
-    	String portProperties = prop.getProperty("ports", "8081");
-    	
-    	if (portProperties.contains(";"))
-    	{
-    		ports = portProperties.split(";");
-    	}
-    	else
-    	{
-    		ports = new String[1];
-    		ports[0] = portProperties;
-    	}
-    	
-    	Utils.createTar("lib.tar", "lib/");
+    	Utils.createTar(nameTar, "lib/");
     	
     	DockerCommands dc = new DockerCommands();
     	
-    	String containerId = dc.createContainer(ports, nameContainer, nameImage);
-    	dc.startContainer(containerId);
-    
-    	dc.addFileToContainer("lib.tar", containerId, "/home/dhus/server/lib");
-    	
-    	String[] command = {"bash", "-c", "/root/script.sh"};
-    	dc.commandInContainer(containerId, command);
+    	createDHuS(dc);
     	
     	dc.close();
-    	    	
+    	
+    	Utils.deleteFile(nameTar);
     }
     
-    public static void launchCommandes() throws FileNotFoundException, IOException, DockerCertificateException, DockerException, InterruptedException
+    private static void init() throws FileNotFoundException, IOException
     {
-    	Properties prop = Programme.load("config.properties");
+    	prop = Programme.load(configName);
     	
-    	String[] ports = null;
+        ports = null;
     	
-    	String pathDockerFile = prop.getProperty("pathdockerfile", "./containerRepo");
-    	String nameImage = prop.getProperty("nameImage", "centosimage");
-    	String nameContainer = prop.getProperty("nameContainer", "centoscontainer");
+    	pathDockerFile = prop.getProperty(pathDockerFileProperty, "./containerRepo");
+    	nameImage = prop.getProperty(nameImageProperty, "centosimageref");
+    	nameContainer = prop.getProperty(nameContainerProperty, "centoscontainer");
     	
-    	String portProperties = prop.getProperty("ports", "8081");
+    	portProperties = prop.getProperty(portsProperty, "8081");
     	
     	if (portProperties.contains(";"))
     	{
@@ -114,18 +99,45 @@ public class Programme {
     		ports = new String[1];
     		ports[0] = portProperties;
     	}
+    }
+    
+    public static void createDHuS(DockerCommands dc) throws DockerException, InterruptedException, DockerCertificateException, IOException
+    {
+    	createDHuS(dc, "latest");
+    }
+    
+    public static void createDHuS(DockerCommands dc, String versionImage) throws DockerException, InterruptedException, DockerCertificateException, IOException
+    {
     	
-    	String pathHostMount = prop.getProperty("pathHostMount", "centosimage");
-    	String pathContainerMount = prop.getProperty("pathContainerMount", "centoscontainer");
+    	if (versionImage == null || versionImage.equals(""))
+    	{
+    		versionImage = "latest";
+    	}
     	
-    	DockerCommands dc = new DockerCommands();
+    	if (!dc.existImage(nameImage))
+    	{
+    		dc.getDockerClient().pull(nameImage+":"+versionImage);
+    	}
     	
-    	//dc.deleteAllContainer();
-    	String id = dc.createAndStartContainer(ports, pathDockerFile, nameImage, nameContainer, null);
+    	if (!dc.existContainer(nameContainer, false))
+    	{
+    		String containerId = createAndStartContainer(dc);
+        	dc.addFileToContainer(nameTar, containerId, "/home/dhus/server/lib");
+        	launchCommand(dc, containerId);
+    	}
     	
+    }
+    
+    public static String createAndStartContainer(DockerCommands dc) throws DockerException, InterruptedException
+    {
+    	String containerId = dc.createContainer(ports, nameContainer, nameImage);
+    	dc.startContainer(containerId);
+    	return containerId;
+    }
+    
+    public static void launchCommand(DockerCommands dc, String containerId) throws DockerException, InterruptedException, IOException
+    {
     	String[] command = {"bash", "-c", "/root/script.sh"};
-    	dc.commandInContainer(id, command);
-    	
-    	dc.close();
+    	dc.commandInContainer(containerId, command);
     }
 }

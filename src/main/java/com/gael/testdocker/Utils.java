@@ -62,4 +62,13 @@ public class Utils {
 	
 	    return files;
 	}
+	
+	public static void deleteFile(String nameFile)
+	{
+		File f = new File(nameFile);
+		if (f.exists())
+		{
+			f.delete();
+		}
+	}
 }

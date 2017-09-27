@@ -29,47 +29,27 @@ import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.HostConfig.Bind;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.PortBinding;
+import com.spotify.docker.client.messages.RegistryAuth;
 
 public class DockerCommands {
 	
-	/**
-	 * DockerClient instance, to communicate with Docker service
-	 */
 	private DockerClient docker;
 	
-	/**
-	 * Constructor of Class
-	 * 
-	 * @param docker DockerClient instance
-	 */
 	public DockerCommands(DockerClient docker)
 	{
 		this.docker = docker;
 	}
 	
-	/**
-	 * Constructor of Class with DockerClient instance with default value
-	 * 
-	 * @throws DockerCertificateException SubClass of Exception for Docker Certificate
-	 */
 	public DockerCommands() throws DockerCertificateException
 	{
 		this(DefaultDockerClient.fromEnv().build());
 	}
 	
-	/**
-	 * Returns the DockerClient instance
-	 * 
-	 * @return DockerClient instance
-	 */
 	public DockerClient getDockerClient()
 	{
 		return this.docker;
 	}
 	
-	/**
-	 * Close the DockerClient
-	 */
 	public void close()
 	{
 		this.docker.close();
@@ -79,14 +59,6 @@ public class DockerCommands {
 	 *	METHODS FOR IMAGES
 	 */
 	
-	/**
-	 * Checks if an Image with name 'nameImage' exists
-	 * 
-	 * @param nameImage name of Image for check
-	 * @return return true if there is an Image with the same name, false otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public boolean existImage(String nameImage) throws DockerException, InterruptedException
 	{
 		List<Image> images = this.docker.listImages(ListImagesParam.allImages());
@@ -108,16 +80,26 @@ public class DockerCommands {
 		return false;
 	}
 	
-	/**
-	 * Create an Image, based on Dockerfile, with a name
-	 * 
-	 * @param pathDockerfile path of Dockerfile
-	 * @param nameImage name for Image
-	 * @return return Id of Image created, null otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 * @throws IOException Subclass of Exception for Input-Output
-	 */
+	public void pullImage(String tagImage) throws DockerException, InterruptedException
+	{
+		this.docker.pull(tagImage);
+	}
+	
+	public void pushImage(String tagImage) throws DockerException, InterruptedException
+	{
+		this.docker.push(tagImage);
+	}
+	
+	public void pullImage(String tagImage, String AUTH_EMAIL, String AUTH_USERNAME, String AUTH_PASSWORD) throws DockerException, InterruptedException
+	{
+		this.docker.pull(tagImage, RegistrationAuth.getAuth(AUTH_EMAIL, AUTH_USERNAME, AUTH_PASSWORD));
+	}
+	
+	public void pushImage(String tagImage, String AUTH_EMAIL, String AUTH_USERNAME, String AUTH_PASSWORD) throws DockerException, InterruptedException
+	{
+		this.docker.push(tagImage, RegistrationAuth.getAuth(AUTH_EMAIL, AUTH_USERNAME, AUTH_PASSWORD));
+	}
+	
 	public void createImage(String pathDockerFile, String nameImage) throws DockerException, InterruptedException, IOException
 	{
 		if (!existImage(nameImage))
@@ -126,17 +108,6 @@ public class DockerCommands {
 		}
 	}
 	
-	/**
-	 * Create an Image, based on Dockerfile, with a name
-	 * 
-	 * @param pathDockerfile path of Dockerfile
-	 * @param nameImage name for Image
-	 * @param buildargs params for Dockerfile
-	 * @return return Id of Image created, null otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 * @throws IOException Subclass of Exception for Input-Output
-	 */
 	public void createImage(String pathDockerFile, String nameImage, String buildargs) throws DockerException, InterruptedException, IOException
 	{
 		if (!existImage(nameImage))
@@ -163,15 +134,6 @@ public class DockerCommands {
 	 *	METHODS FOR CONTAINERS
 	 */
 	
-	/**
-	 * Checks if a Container with name 'nameImage' exists
-	 * 
-	 * @param nameContainer name of Container for check
-	 * @param containerRunning boolean to check only Running Containers or all Containers
-	 * @return - return true if there is an Container with the same name, false otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public boolean existContainer(String nameContainer, boolean containerRunning) throws DockerException, InterruptedException
 	{
 		List<Container> containers = this.docker.listContainers(ListContainersParam.allContainers(!containerRunning));
@@ -199,16 +161,6 @@ public class DockerCommands {
 		return false;
 	}
 	
-	/**
-	 * Create a container with port from the name of an Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param nameContainer name for Container
-	 * @param nameImage name of Image for Container creation
-	 * @return id of Container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public String createContainer(String[] ports, String nameContainer, String nameImage) throws DockerException, InterruptedException
 	{
 	
@@ -226,18 +178,6 @@ public class DockerCommands {
 		
 	}
 	
-	/**
-	 * Create a container with port from the name of an Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param nameContainer name for Container
-	 * @param nameImage name of Image for Container creation
-	 * @param pathHostMount Path of mount of Host
-	 * @param pathContainerMount Path of mount inside Container
-	 * @return id of Container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public String createContainer(String[] ports, String nameContainer, String nameImage, String pathHostMount, String pathContainerMount) throws DockerException, InterruptedException
 	{
 		
@@ -255,19 +195,6 @@ public class DockerCommands {
 		
 	}
 	
-	/**
-	 * Create a container with port from the name of an Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param nameContainer name for Container
-	 * @param nameImage name of Image for Container creation
-	 * @param pathHostMount Path of mount of Host
-	 * @param pathContainerMount Path of mount inside Container
-	 * @param readOnly true if mount is read only, false otherwise 
-	 * @return id of Container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public String createContainer(String[] ports, String nameContainer, String nameImage, String pathHostMount, String pathContainerMount, boolean readOnly) throws DockerException, InterruptedException
 	{
 		
@@ -284,12 +211,6 @@ public class DockerCommands {
 		return null;
 	}
 	
-	/**
-	 * Create a map for binding
-	 * 
-	 * @param ports array of ports for binding
-	 * @return Map of Binding ports
-	 */
 	private Map<String, List<PortBinding>> getPorBinding(String[] ports)
 	{
 		final Map<String, List<PortBinding>> portBindings = new HashMap<>();
@@ -302,17 +223,6 @@ public class DockerCommands {
 		return portBindings;
 	}
 	
-	/**
-	 * Create a container and return Id
-	 * 
-	 * @param ports Map of ports for binding
-	 * @param nameContainer name for created container 
-	 * @param nameImage name of image which container is based
-	 * @param hostConfig configuration of host for Container
-	 * @return id of created container
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	private String createContainer(String[] ports, String nameContainer, String nameImage, HostConfig hostConfig) throws DockerException, InterruptedException
 	{
 		final ContainerConfig containerConfig = ContainerConfig.builder()
@@ -323,13 +233,6 @@ public class DockerCommands {
 		return creation.id();
 	}
 	
-	/**
-	 * Start a container from id
-	 * 
-	 * @param id id of Container to start
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public void startContainer(String id) throws DockerException, InterruptedException
 	{
 		if (id != null)
@@ -342,14 +245,6 @@ public class DockerCommands {
 		}
 	}
 	
-	/**
-	 * Stop a container if it exists
-	 * 
-	 * @param nameContainer name of Container to stop
-	 * @return return true if container is stopped, false otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public boolean stopContainer(String nameContainer) throws DockerException, InterruptedException
 	{
 		if (this.existContainer(nameContainer, true))
@@ -361,14 +256,6 @@ public class DockerCommands {
 		return false;
 	}
 	
-	/**
-	 * Delete of a Container with the name
-	 * 
-	 * @param nameContainer name of container to delete
-	 * @return return true if container is deleted, false otherwise
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
 	public boolean deleteContainer(String nameContainer) throws DockerException, InterruptedException
 	{
 		boolean stopContainer = this.stopContainer(nameContainer);
@@ -408,110 +295,9 @@ public class DockerCommands {
     
 	}
 	
-	/* CREATE IMAGES AND CONTAINERS */
-	
-	/**
-	 * Create an Image and Container from Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param pathDockerFile path of Dockerfile
-	 * @param nameImage name of Image for Container creation
-	 * @param nameContainer name for Container
-	 * @return id of Container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 * @throws IOException Subclass of Exception for Input-Output
-	 */
-	public String createAndStartContainer(String[] ports, String pathDockerFile, String nameImage, String nameContainer, String buildargs) throws DockerException, InterruptedException, IOException
-	{
-		if (buildargs == null)
-		{
-			this.createImage(pathDockerFile, nameImage);
-		}
-		else
-		{
-			this.createImage(pathDockerFile, nameImage, buildargs);
-		}
-	    	
-    	String idContainer = this.createContainer(ports, nameContainer, nameImage);
-    	this.startContainer(idContainer);
-    	
-    	return idContainer;
-	}
-	
-	/**
-	 * Create an Image and Container from Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param pathDockerFile path of Dockerfile
-	 * @param nameImage name of Image for Container creation
-	 * @param nameContainer name for Container
-	 * @param pathHostMount Path of mount of Host
-	 * @param pathContainerMount Path of mount inside Container
-	 * @return id of container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 * @throws IOException Subclass of Exception for Input-Output
-	 */
-	public String createAndStartContainer(String[] ports, String pathDockerFile, String nameImage, String nameContainer, String pathHostMount, String pathContainerMount, String buildargs) throws DockerException, InterruptedException, IOException
-	{
-		if (buildargs == null)
-		{
-			this.createImage(pathDockerFile, nameImage);
-		}
-		else
-		{
-			this.createImage(pathDockerFile, nameImage, buildargs);
-		}
-
-		String idContainer = this.createContainer(ports, nameContainer, nameImage, pathHostMount, pathContainerMount);
-    	this.startContainer(idContainer);
-    	
-    	return idContainer;
-	}
-	
-	/**
-	 * Create an Image and Container from Image
-	 * 
-	 * @param ports port binded for Container
-	 * @param pathDockerFile path of Dockerfile
-	 * @param nameImage name of Image for Container creation
-	 * @param nameContainer name for Container
-	 * @param pathHostMount Path of mount of Host
-	 * @param pathContainerMount Path of mount inside Container
-	 * @param readOnly true if mount is read only, false otherwise 
-	 * @return id of container created
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 * @throws IOException Subclass of Exception for Input-Output
-	 */
-	public String createAndStartContainer(String[] ports, String pathDockerFile, String nameImage, String nameContainer, String pathHostMount, String pathContainerMount, boolean readOnly, String buildargs) throws DockerException, InterruptedException, IOException
-	{
-		if (buildargs == null)
-		{
-			this.createImage(pathDockerFile, nameImage);
-		}
-		else
-		{
-			this.createImage(pathDockerFile, nameImage, buildargs);
-		}
-	    	
-		String idContainer = this.createContainer(ports, nameContainer, nameImage, pathHostMount, pathContainerMount, readOnly);
-	   	this.startContainer(idContainer);
-	    	
-	   	return idContainer;
-	}
-	
 	/* OTHERS METHODS */
 	
-	/**
-	 * Returns IP Address of a container from a name
-	 * 
-	 * @param nameContainer name of container to get Ip Address
-	 * @return ip address pf container
-	 * @throws DockerException SubClass of Exception
-	 * @throws InterruptedException Thrown when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity
-	 */
+	
 	public String getIpAddress(String nameContainer) throws DockerException, InterruptedException
 	{
 		return docker.inspectContainer(nameContainer).networkSettings().ipAddress();
