@@ -1,4 +1,4 @@
-FROM centosimageref:7
+FROM tdegueurce/centosimageref
 MAINTAINER Mendel Bellaiche, mendel.bellaiche@gael.fr
 
 ARG PATHWORKDIR

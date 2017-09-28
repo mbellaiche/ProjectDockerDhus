@@ -13,7 +13,27 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
+/**
+ * <p>Utility class for severals actions :
+ * <ul>
+ * <li>Create Tar archive</li>
+ * <li>Delete file</li>
+ * <li>Get all files in a folder</li>
+ * </ul>
+ * 
+ * @author bellaiche
+ * @version 1.0
+ * 
+ */
 public class Utils {
+	
+	/**
+	 * Create a tar archive
+	 * 
+	 * @param tarName Name of the tar archive
+	 * @param pathName Path of the directory to compress
+	 * @throws IOException
+	 */
 	public static void createTar(final String tarName, String pathName) throws IOException {
 		
 		List<File> pathEntries = new ArrayList<File>();
@@ -44,6 +64,15 @@ public class Utils {
         tarOutput.close();
     }
 
+	/**
+	 * Returns all files from a directory
+	 * 
+	 * @param directory Directy to scan
+	 * @return List of File in the Directory
+	 * 
+	 * @see File
+	 * 
+	 */
 	public static List<File> recurseDirectory(final File directory) {
 	
 	    List<File> files = new ArrayList<File>();
@@ -63,6 +92,14 @@ public class Utils {
 	    return files;
 	}
 	
+	/**
+	 * Delete a file
+	 * 
+	 * @param nameFile name of the file to delete
+	 * 
+	 * @see File
+	 * 
+	 */
 	public static void deleteFile(String nameFile)
 	{
 		File f = new File(nameFile);
